@@ -9,6 +9,10 @@ d3.json(queryurl, function (data) {
     createFeatures(data.features);
 });
 
+function markSize(size) {
+    return size * 50000;
+};
+
 function createFeatures(earthquakeData) {
 
     // define a function we want to run once for each feature in the features array
@@ -24,10 +28,49 @@ function createFeatures(earthquakeData) {
         onEachFeature: onEachFeature
     });
 
-    // createMap(earthquakes);
+    // create marksize
+    function markSize(size) {
+        return size * 50000;
+    };
+
+    // define mark color depending on depth from surface
+    function markColor(depth) {
+        if (depth < 10) {
+            return "#71FF33"
+        } else if (depth < 30) {
+            return "#E9FF33"
+        } else if (depth < 50) {
+            return "#FFC133"
+        } else if (depth < 70) {
+            return "#FF8D33"
+        } else if (depth < 90) {
+            return "#FF3933"
+        } else if (depth < 110) {
+            return "#F90E07"
+        }
+    };
+
+    // create list
+    var magnitudeMarkers = [];
+
+    for (var i = 0; i < earthquakeData.length; i++) {
+
+        // setting the marker radius for the magnitude by passing magnitude property into the markerSize function
+        magnitudeMarkers.push(
+            L.circle([earthquakeData[i].geometry.coordinates[1], earthquakeData[i].geometry.coordinates[0]], {
+                stroke: false,
+                fillOpacity: 0.75,
+                stroke: "#2A2323",
+                fillColor: markColor(earthquakeData[i].geometry.coordinates[2]),
+                radius: markSize(earthquakeData[i].properties.mag)
+            })
+        );
+    }
+
+    createMap(earthquakes, magnitudeMarkers);
 };
 
-function createMap(earthquakes) {
+function createMap(earthquakes, magnitudeMarkers) {
 
     // Define streetmap and darkmap layers
     var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
@@ -58,7 +101,7 @@ function createMap(earthquakes) {
     };
   
     // Create our map, giving it the streetmap and earthquakes layers to display on load
-    var myMap = L.map("map", {
+    var myMap = L.map("mapid", {
       center: [
         37.09, -95.71
       ],
